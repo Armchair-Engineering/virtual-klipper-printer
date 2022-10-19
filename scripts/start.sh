@@ -13,12 +13,9 @@
 set -e
 
 REQUIRED_FOLDERS=(
-  "${HOME}/klipper_config"
-  "${HOME}/klipper_logs"
-  "${HOME}/gcode_files"
   "${HOME}/webcam_images"
   "${HOME}/timelapse"
-  "${HOME}/.moonraker_database"
+  "${HOME}/printer_data"
 )
 
 function status_msg() {
@@ -33,7 +30,7 @@ function check_folder_perms() {
   for folder in "${REQUIRED_FOLDERS[@]}"; do
     if [[ $(stat -c "%U" "${folder}") != "printer" ]]; then
       status_msg "chown for user: 'printer' on folder: ${folder}"
-      sudo chown printer:printer "${folder}"
+      sudo chown -R printer:printer "${folder}"
     fi
   done
   status_msg "OK!"
@@ -43,10 +40,10 @@ function check_folder_perms() {
 # Copy example configs if ~/klipper_config is empty
 ###
 function copy_example_configs() {
-  if [[ ! "$(ls -A "${HOME}/klipper_config")" ]]; then
-    status_msg "Directory ${HOME}/klipper_config is empty!"
+  if [[ ! "$(ls -A "${HOME}/printer_data/config")" ]]; then
+    status_msg "Directory ${HOME}/printer_data/config is empty!"
     status_msg "Copy example configs ..."
-    cp -R ~/example-configs/* ~/klipper_config
+    cp -R ~/example-configs/* ~/printer_data/config
     status_msg "OK!"
   fi
 }
@@ -70,7 +67,7 @@ function link_timelapse() {
   local component_source="${HOME}/moonraker-timelapse/component/timelapse.py"
   local component_target="${HOME}/moonraker/moonraker/components/timelapse.py"
   local macro_source="${HOME}/moonraker-timelapse/klipper_macro/timelapse.cfg"
-  local macro_target="${HOME}/klipper_config/addons/timelapse.cfg"
+  local macro_target="${HOME}/printer_data/config/addons/timelapse.cfg"
 
   if [[ -f ${component_source} && ! -h ${component_target} ]]; then
     status_msg "Linking moonraker-timelapse component ..."
